@@ -1,0 +1,9 @@
+pom.xml
+*jar
+lib
+classes
+appengine-java-sdk-1.3.8.zip
+appengine-java-sdk-1.3.8
+classes
+lib
+resources/WEB-INF/lib
