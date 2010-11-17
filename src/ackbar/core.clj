@@ -1,3 +1,5 @@
+;; It's a Trap!
+
 (ns ackbar.core
   (:use compojure.core hiccup.core hiccup.form-helpers hiccup.page-helpers)
   (:require [appengine-magic.core :as ae]))
