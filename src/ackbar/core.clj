@@ -118,7 +118,18 @@
     (ds/delete! (ds/retrieve Page (canonical-title title))))
   (ds/save! (Page. (canonical-title title) body))
   (result "Page updated!"))
- 
+
+(defn all-pages
+  "Renders a page with all of the pages inserted in the datastore sorted
+   chronologically"
+  []
+  (def pages (ds/query :kind Page))
+  (response-wrapper
+   "All Pages"
+   (for [page pages]
+     [:div [:h1 (:title page)]
+     [:div (:body page)]])))
+                    
 (defroutes ackbar-app-handler
   (GET "/" [] (render-page "home"))
   (GET "/admin/add" [] (admin-add-page))
@@ -129,6 +140,7 @@
   (POST "/admin/edit" {params :params}
         (edit-page (params "title") (params "body")))
   (POST "/admin/delete/:title" [title] (delete-page title))
+  (GET "/all" [] (all-pages))
   (GET "/:title" [title] (render-page (canonical-title title)))
   (ANY "*" [] (response-wrapper "404" "NOT FOUND!" 404)))
 
