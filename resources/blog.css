@@ -1,0 +1,93 @@
+/* main layout */
+body {
+	color: #666;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-size: 14px;
+}
+a {
+	color: #999;
+}
+h1 a {
+	text-decoration: none;
+	color: #666;
+}
+a img {
+	border-style: none;
+}
+a:hover {
+	background-color: #EEE;
+}
+div#logo a:hover {
+	background-color: transparent;	
+}
+.title a:hover {
+	background-color: transparent;
+}
+div#content {
+	width:800px;
+	margin-left:auto;
+	margin-right:auto;
+}
+div#posts {
+	padding-top:100px;
+	padding-right:50px;
+	border-right-color: #FFF;
+	border-right-width: 1px;
+	border-right-style: solid;
+	float:left;
+	width: 450px;
+	line-height: 1.8;
+}
+div#sidebar {
+	padding-top:90px;
+	float: right;
+	width: 250px;
+	line-height: 1.5;
+}
+div#logo {
+}
+div#name {
+	margin-bottom: 100px;
+	text-size: 1.2em;
+	color: #666;
+	font-weight: bold;
+}
+div#nav {
+	margin-top: 100px;
+}
+
+div#nav ul {
+	margin: 0;
+	padding: 0;
+}
+
+div#nav li {
+	list-style-type: none;
+	margin-top: 5px;
+}
+
+h1.title {
+	line-height: 1;
+	font-size: 1.2em;
+	color: #666;
+	border-bottom-color: #CCC;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+div.date {
+	margin-top: -13px;
+	margin-bottom: -13px;
+	color: #CCC;
+	font-size: 0.8em;
+}
+
+div.post {
+	margin-bottom: 50px;	
+}
+
+div.permalink {
+	margin-top: -15px;
+	color: #CCC;
+	font-size: 0.8em;
+}

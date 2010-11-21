@@ -3,7 +3,7 @@
   (:require [appengine-magic.core :as ae]
             [appengine-magic.services.datastore :as ds]
             [clojure.contrib.str-utils2 :as s])
-  (:import com.google.appengine.api.datastore.EntityNotFoundException
+  (:import (com.google.appengine.api.datastore EntityNotFoundException Text)
            java.text.SimpleDateFormat
            java.util.Date))
 
@@ -27,26 +27,65 @@
   ([title body status]
      {:status status
       :headers {"Content-Type" "text/html"}
-      :body (xhtml [:head [:title title]]
-                   [:body body])}))
+      :body (xhtml [:head [:title title]
+                    (include-css "/blog.css")]
+                   [:body [:div {:id "content"}
+                           [:div {:id "posts"}
+                            body]
+                           [:div {:id "sidebar"}
+                            [:div {:id "logo"}
+                             [:a {:href "http://www.thurn.ca"}
+                              ["img" {:src "/logo.jpg" :width "218"
+                                      :height "58" :alt "thurn.ca logo"}]]]
+                            [:div {:id "name"} "Derek Thurn's Website"]
+                            [:div {:id "bio"} "Hello, and welcome. My name is "
+                             "Derek Thurn. I am a student at the University of "
+                             "Waterloo in Canada, where I am studying Software "
+                             "Engineering."]
+                            [:div {:id "nav"}
+                             [:ul
+                              [:li [:a {:href "#"} "About Me"]]
+                              [:li [:a {:href "#"} "Github"]]
+                              [:li [:a {:href "#"} "Archives"]]
+                              [:li "Subscribe via " [:a {:href "#"} "RSS"]
+                               " or " [:a {:href "#"} "Email"]]]]]]])}))
+
+(defn page-link
+  "Builds a link to the specified page object"
+  [page]
+  (link-to (str "/" (:url page)) (:title page)))
+
+(def date-format (SimpleDateFormat. "yyyy-MM-dd"))
+
+(defn to-date
+  "Converts a UNIX timstamp to a date string"
+  [timestamp]
+  (.format date-format (Date. timestamp)))
+
+(defn format-page
+  "Returns HTML for a page"
+  [page]
+  (html [:div {:class "post"} [:h1 {:class "title"} (page-link page)]
+         [:div {:class "date"} (to-date (:timestamp page))]
+         (.getValue (:body page))]))
 
 (defn render-page
   "Retrieve a page from the datastore and render it for display to the user"
   [url]
   (try
-    (response-wrapper url (:body (ds/retrieve Page url)))
+    (response-wrapper url (format-page (ds/retrieve Page url)))
     (catch EntityNotFoundException _
       (response-wrapper "404" (str "Unable to find page: " url) 404))))
 
 (defn add-or-edit-form
   "Returns a form to add or edit a page."
-  ([url] (add-or-edit-form url "" ""))
+  ([url] (add-or-edit-form url "" (Text. "")))
   ([url title body]
      (form-to [:post url]
               (label "title" "Title:") [:br]
               (text-field "title" title) [:br]
               (label "body" "Body:") [:br]
-              (text-area {:cols 80 :rows 40} "body" body) [:br]
+              (text-area {:cols 50 :rows 40} "body" (.getValue body)) [:br]
               (submit-button "Submit"))))
 
 (defn admin-add-page
@@ -60,13 +99,8 @@
   [url title body]
   (if (ds/exists? Page url)
     (result "ERROR: Page already exists!")
-    (do (ds/save! (Page. url title body (System/currentTimeMillis)))
+    (do (ds/save! (Page. url title (Text. body) (System/currentTimeMillis)))
         (result "Page saved!"))))
-
-(defn page-link
-  "Builds a link to the specified page object"
-  [page]
-  (link-to (str "/" (:url page)) (:title page)))
 
 (defn edit-link
   "Builds a link to edit the specified page"
@@ -118,7 +152,7 @@
   [url title body]
   (if (ds/exists? Page url)
     (ds/delete! (ds/retrieve Page url)))
-  (ds/save! (Page. url title body (System/currentTimeMillis)))
+  (ds/save! (Page. url title (Text. body) (System/currentTimeMillis)))
   (result "Page updated!"))
 
 (defn all-pages
@@ -129,15 +163,7 @@
   (response-wrapper
    "All Pages"
    (for [page pages]
-     [:div [:h1 (:title page)]
-      [:div (:body page)]])))
-
-(def date-format (SimpleDateFormat. "yyyy-MM-dd"))
-
-(defn to-date
-  "Converts a UNIX timstamp to a date string"
-  [timestamp]
-  (.format date-format (Date. timestamp)))
+     (format-page page))))
 
 (defn render-paginate
   "Renders a fixed number of pages"
@@ -149,9 +175,7 @@
   (response-wrapper
    "Paginated"
    (html (for [page pages]
-           [:div {:class "post"} [:h1 {:class "title"} (page-link page)]
-            [:div {:class "date"} (to-date (:timestamp page))]
-            (:body page)])
+           (format-page page))
          (if (> number 0)
            (html (link-to (str "/pages/" (dec number)) "prev") [:br]))
          (if (= pagesize (count pages))
@@ -169,8 +193,8 @@
   (GET "/admin/edit/:title" [title] (admin-edit-page title))
   (POST "/admin/edit" {params :params}
         (edit-page (canonical-title (params "title"))
-                  (params "title")
-                  (params "body")))
+                   (params "title")
+                   (params "body")))
   (POST "/admin/delete/:title" [title] (delete-page title))
   (GET "/pages" [] (all-pages))
   (GET "/:title" [title] (render-page (canonical-title title)))

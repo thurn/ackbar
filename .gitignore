@@ -9,3 +9,4 @@ lib
 resources/WEB-INF/lib
 resources/WEB-INF/appengine-generated/
 .rake_tasks
+.DS_Store
