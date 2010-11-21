@@ -91,3 +91,87 @@ div.permalink {
 	color: #CCC;
 	font-size: 0.8em;
 }
+pre.code {
+	color: #f5deb3;
+	background-color: #000;
+	padding-left: 10px;
+	font-family: "Courier New", Courier, monospace;
+	font-size: 0.8em;
+}
+
+h2 {
+ font-size: 1em;
+ margin-bottom: -15px;
+}
+
+.builtin {
+        color: #b0c4de;
+}
+.comment {
+        color: #ff4500;
+}
+.comment-delimiter {
+        color: #ff4500;
+}
+.keyword {
+        color: #00ffff;
+}
+.variable-name {
+        color: #eedd82;
+}
+.function-name {
+        color: #87cefa;
+}
+.string {
+        color: #ffa07a;
+}
+.py-builtins {
+        color: #00ffff;
+}
+.constant {
+        color: #7fffd4;
+}
+.type {
+        color: #98fb98;
+}
+.jde-java-font-lock-modifier {
+        color: #b0c4de;
+}
+.jde-java-font-lock-number {
+        color: #ffa07a;
+}
+.jde-java-font-lock-public {
+        color: #b0c4de;
+}
+.bold {
+    color: #ffff00;
+	background-color: #666666;
+	font-weight: bold;
+}
+.underline {
+        text-decoration: underline;
+}
+.doc {
+        color: #ffa07a;
+}
+.rainbow-paren-blue {
+        color: #0000ff;
+}
+.rainbow-paren-green {
+        color: #00ff00;
+}
+.rainbow-paren-orange {
+        color: #ff7f00;
+}
+.rainbow-paren-pink {
+        color: #ffc0cb;
+}
+.rainbow-paren-purple {
+        color: #7f007f;
+}
+.rainbow-paren-red {
+        color: #ff0000;
+}
+.rainbow-paren-yellow {
+        color: #ffff00;
+}

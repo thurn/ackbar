@@ -27,7 +27,7 @@
   ([title body status]
      {:status status
       :headers {"Content-Type" "text/html"}
-      :body (xhtml [:head [:title title]
+      :body (xhtml [:head [:title "Derek Thurn's Website"]
                     (include-css "/blog.css")]
                    [:body [:div {:id "content"}
                            [:div {:id "posts"}
@@ -44,11 +44,13 @@
                              "Engineering."]
                             [:div {:id "nav"}
                              [:ul
-                              [:li [:a {:href "#"} "About Me"]]
-                              [:li [:a {:href "#"} "Github"]]
-                              [:li [:a {:href "#"} "Archives"]]
-                              [:li "Subscribe via " [:a {:href "#"} "RSS"]
-                               " or " [:a {:href "#"} "Email"]]]]]]])}))
+                              [:li (link-to "http://github.com/thurn"
+                                            "My Github")]]]]]
+                    (include-js
+              "https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"
+              "/jquery.curvycorners.packed.js")
+                    [:script {:type "text/javascript"}
+                     "$('.code').corner();"]])}))
 
 (defn page-link
   "Builds a link to the specified page object"
@@ -84,6 +86,8 @@
      (form-to [:post url]
               (label "title" "Title:") [:br]
               (text-field "title" title) [:br]
+              (label "timestamp" "Timestamp:") [:br]
+              (text-field "timestamp") [:br]
               (label "body" "Body:") [:br]
               (text-area {:cols 50 :rows 40} "body" (.getValue body)) [:br]
               (submit-button "Submit"))))
@@ -96,10 +100,10 @@
 
 (defn add-page
   "Adds a page to the database with the specified title and content"
-  [url title body]
+  [url title body ts]
   (if (ds/exists? Page url)
     (result "ERROR: Page already exists!")
-    (do (ds/save! (Page. url title (Text. body) (System/currentTimeMillis)))
+    (do (ds/save! (Page. url title (Text. body) ts))
         (result "Page saved!"))))
 
 (defn edit-link
@@ -149,10 +153,10 @@
 
 (defn edit-page
   "Edits a page, updating its title and content"
-  [url title body]
+  [url title body ts]
   (if (ds/exists? Page url)
     (ds/delete! (ds/retrieve Page url)))
-  (ds/save! (Page. url title (Text. body) (System/currentTimeMillis)))
+  (ds/save! (Page. url title (Text. body) ts))
   (result "Page updated!"))
 
 (defn all-pages
@@ -177,27 +181,36 @@
    (html (for [page pages]
            (format-page page))
          (if (> number 0)
-           (html (link-to (str "/pages/" (dec number)) "prev") [:br]))
+           (html (link-to (str "/pages/" (dec number)) "prev")
+                 [:br]))
          (if (= pagesize (count pages))
            (link-to (str "/pages/" (inc number)) "next")))))
 
 (defroutes ackbar-app-handler
   (GET "/" [] (render-paginate 0))
-  (GET "/pages/:number" [number] (render-paginate (Integer/parseInt number)))
+  (GET "/pages/:number" [number] (render-paginate
+                                  (Integer/parseInt number)))
   (GET "/admin/add" [] (admin-add-page))
   (GET "/admin/pages" [] (admin-page-list))
   (POST "/admin/add" {params :params}
         (add-page (canonical-title (params "title"))
                   (params "title")
-                  (params "body")))
+                  (params "body")
+                  (if (empty? (params "timestamp"))
+                    (System/currentTimeMillis)
+                    (Long/parseLong (params "timestamp")))))
   (GET "/admin/edit/:title" [title] (admin-edit-page title))
   (POST "/admin/edit" {params :params}
         (edit-page (canonical-title (params "title"))
                    (params "title")
-                   (params "body")))
+                   (params "body")
+                    (if (empty? (params "timestamp"))
+                    (System/currentTimeMillis)
+                    (Long/parseLong (params "timestamp")))))
   (POST "/admin/delete/:title" [title] (delete-page title))
   (GET "/pages" [] (all-pages))
-  (GET "/:title" [title] (render-page (canonical-title title)))
+  (GET "/:title" [title] (render-page
+                          (canonical-title title)))
   (ANY "*" [] (response-wrapper "404" "NOT FOUND!" 404)))
 
 (ae/def-appengine-app ackbar-app #'ackbar-app-handler)
