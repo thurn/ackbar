@@ -3,7 +3,9 @@
   (:require [appengine-magic.core :as ae]
             [appengine-magic.services.datastore :as ds]
             [clojure.contrib.str-utils2 :as s])
-  (:import com.google.appengine.api.datastore.EntityNotFoundException))
+  (:import com.google.appengine.api.datastore.EntityNotFoundException
+           java.text.SimpleDateFormat
+           java.util.Date))
 
 (ds/defentity Page [^:key url, title, body, timestamp])
 
@@ -130,6 +132,13 @@
      [:div [:h1 (:title page)]
       [:div (:body page)]])))
 
+(def date-format (SimpleDateFormat. "yyyy-MM-dd"))
+
+(defn to-date
+  "Converts a UNIX timstamp to a date string"
+  [timestamp]
+  (.format date-format (Date. timestamp)))
+
 (defn render-paginate
   "Renders a fixed number of pages"
   [number]
@@ -140,8 +149,9 @@
   (response-wrapper
    "Paginated"
    (html (for [page pages]
-           [:div [:h1 (:title page)]
-            [:div (:body page)]])
+           [:div {:class "post"} [:h1 {:class "title"} (page-link page)]
+            [:div {:class "date"} (to-date (:timestamp page))]
+            (:body page)])
          (if (> number 0)
            (html (link-to (str "/pages/" (dec number)) "prev") [:br]))
          (if (= pagesize (count pages))
