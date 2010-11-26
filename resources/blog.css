@@ -18,7 +18,7 @@ a:hover {
 	background-color: #EEE;
 }
 div#logo a:hover {
-	background-color: transparent;	
+	background-color: transparent;
 }
 .title a:hover {
 	background-color: transparent;
@@ -29,20 +29,21 @@ div#content {
 	margin-right:auto;
 }
 div#posts {
-	padding-top:100px;
+	margin-top:100px;
 	padding-right:50px;
-	border-right-color: #FFF;
-	border-right-width: 1px;
-	border-right-style: solid;
 	float:left;
 	width: 450px;
 	line-height: 1.8;
 }
 div#sidebar {
-	padding-top:90px;
+	margin-top:100px;
 	float: right;
 	width: 250px;
 	line-height: 1.5;
+	border-left-color: #CCC;
+	border-left-style: solid;
+	border-left-width: 1px;
+	padding-left: 20px;
 }
 div#logo {
 }
@@ -55,37 +56,32 @@ div#name {
 div#nav {
 	margin-top: 100px;
 }
-
 div#nav ul {
 	margin: 0;
 	padding: 0;
 }
-
 div#nav li {
 	list-style-type: none;
 	margin-top: 5px;
 }
-
 h1.title {
 	line-height: 1;
 	font-size: 1.2em;
 	color: #666;
-	border-bottom-color: #CCC;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
 }
-
+h2 {
+ font-size: 1em;
+ margin-bottom: -15px;
+}
 div.date {
 	margin-top: -13px;
 	margin-bottom: -13px;
 	color: #CCC;
 	font-size: 0.8em;
 }
-
 div.post {
-	margin-bottom: 50px;	
+	margin-bottom: 50px;
 }
-
 div.permalink {
 	margin-top: -15px;
 	color: #CCC;
@@ -94,15 +90,12 @@ div.permalink {
 pre.code {
 	color: #f5deb3;
 	background-color: #000;
-	padding-left: 10px;
+	padding-left: 5px;
 	font-family: "Courier New", Courier, monospace;
 	font-size: 0.8em;
 }
 
-h2 {
- font-size: 1em;
- margin-bottom: -15px;
-}
+/* syntax highlight */
 
 .builtin {
         color: #b0c4de;
@@ -133,6 +126,9 @@ h2 {
 }
 .type {
         color: #98fb98;
+}
+.variable-name {
+        color: #eedd82;
 }
 .jde-java-font-lock-modifier {
         color: #b0c4de;
