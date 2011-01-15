@@ -12,10 +12,9 @@ Serve web pages with it...
 2) Clone the source code somewhere
 3) Run 'rake deps' in the created directory to download the dependencies
 4) Run 'rake devserver' to start the devserver on localhost:8080
-5) 'rake deploy' will push to the live site if you know my gmail password for some reason.
+5) 'rake deploy' will push to the live site if you know my gmail password for
+   some reason.
 
 ## License
 
-Copyright (C) 2010 Derek Thurn
-
-Distributed under the Eclipse Public License, the same as Clojure.
+Public domain. Refer to the UNLICENSE file for details.

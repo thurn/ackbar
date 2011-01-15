@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<datastore-indexes autoGenerate="false">
+    <datastore-index kind="Post" ancestor="false" source="manual">
+        <property name="in-feed?" direction="asc"/>
+        <property name="timestamp" direction="desc"/>
+    </datastore-index>
+</datastore-indexes>

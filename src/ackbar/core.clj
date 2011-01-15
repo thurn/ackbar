@@ -1,216 +1,139 @@
 (ns ackbar.core
-  (:use compojure.core hiccup.core hiccup.form-helpers hiccup.page-helpers)
+  (:use [compojure.core :only (GET POST ANY defroutes)])
   (:require [appengine-magic.core :as ae]
             [appengine-magic.services.datastore :as ds]
-            [clojure.contrib.str-utils2 :as s])
-  (:import (com.google.appengine.api.datastore EntityNotFoundException Text)
-           java.text.SimpleDateFormat
-           java.util.Date))
+            [clojure.contrib.str-utils2 :as su]
+            [ackbar.views :as vws]
+            [ring.util.response :as rsp])
+  (:import (com.google.appengine.api.datastore EntityNotFoundException Text)))
 
-(ds/defentity Page [^:key url, title, body, timestamp])
+(ds/defentity Post [^:key url, title, body, timestamp, in-feed?])
 
 (defn canonical-title
-  "Converts a given page title to a standard format, suitable for use in a URL."
+  "Converts a given post title to a standard format, suitable for use in a URL."
   [str]
-  (s/replace (s/replace (.toLowerCase str) #"\s+" "_") #"\W+" ""))
+  (su/replace (su/replace (.toLowerCase str) #"\s+" "_") #"\W+" ""))
 
-(defn wrap-result [result]
-  {:status 200
-   :headers {"Content-Type" "text/html"}
-   :body (html [:html [:head [:title (:title result)]]
-                [:body (:body result)]])})
-
-(defn result [str] (wrap-result {:title str :body [:h1 str]}))
-
-(defn response-wrapper
-  ([title body] (response-wrapper title body 200))
-  ([title body status]
+(defn respond
+  "Takes an html post body string and optional response stauts, and returns a
+   Compojure response map. If status is not specified, defaults to 200."
+  ([code] (respond code 200))
+  ([code status]
      {:status status
       :headers {"Content-Type" "text/html"}
-      :body (xhtml [:head [:title "Derek Thurn's Website"]
-                    (include-css "/blog.css")]
-                   [:body [:div {:id "content"}
-                           [:div {:id "posts"}
-                            body]
-                           [:div {:id "sidebar"}
-                            [:div {:id "logo"}
-                             [:a {:href "http://www.thurn.ca"}
-                              ["img" {:src "/logo.jpg" :width "218"
-                                      :height "58" :alt "thurn.ca logo"}]]]
-                            [:div {:id "name"} "Derek Thurn's Website"]
-                            [:div {:id "bio"} "Hello, and welcome. My name is "
-                             "Derek Thurn. I am a student at the University of "
-                             "Waterloo in Canada, where I am studying Software "
-                             "Engineering."]
-                            [:div {:id "nav"}
-                             [:ul
-                              [:li (link-to "http://github.com/thurn"
-                                            "My Github")]]]]]
-                    (include-js
-              "https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"
-              "/jquery.curvycorners.packed.js")
-                    [:script {:type "text/javascript"}
-                     "$('.code').corner();"]])}))
+      :body code}))
 
-(defn page-link
-  "Builds a link to the specified page object"
-  [page]
-  (link-to (str "/" (:url page)) (:title page)))
+(defn error404
+  "Takes an error string and returns a Compojure error response with status 404
+   displaying the error message."
+  [error]
+  (respond (vws/error404-template error)))
 
-(def date-format (SimpleDateFormat. "yyyy-MM-dd"))
-
-(defn to-date
-  "Converts a UNIX timstamp to a date string"
-  [timestamp]
-  (.format date-format (Date. timestamp)))
-
-(defn format-page
-  "Returns HTML for a page"
-  [page]
-  (html [:div {:class "post"} [:h1 {:class "title"} (page-link page)]
-         [:div {:class "date"} (to-date (:timestamp page))]
-         (.getValue (:body page))]))
-
-(defn render-page
-  "Retrieve a page from the datastore and render it for display to the user"
+(defn single-post
+  "Takes a post url and returns a Compojure response with the rendered post."
   [url]
   (try
-    (response-wrapper url (format-page (ds/retrieve Page url)))
+    (def post (ds/retrieve Post url))
+    (def post-response (vws/posts-view (:title post) [post]))
+    (respond post-response)
     (catch EntityNotFoundException _
-      (response-wrapper "404" (str "Unable to find page: " url) 404))))
+      (error404 (str "Unable to find post: " url)))))
 
-(defn add-or-edit-form
-  "Returns a form to add or edit a page."
-  ([url] (add-or-edit-form url "" (Text. "")))
-  ([url title body]
-     (form-to [:post url]
-              (label "title" "Title:") [:br]
-              (text-field "title" title) [:br]
-              (label "timestamp" "Timestamp:") [:br]
-              (text-field "timestamp") [:br]
-              (label "body" "Body:") [:br]
-              (text-area {:cols 50 :rows 40} "body" (.getValue body)) [:br]
-              (submit-button "Submit"))))
-
-(defn admin-add-page
-  "Displays the Ackbar Admin 'Add Page' Page"
-  []
-  (response-wrapper "Add Page"
-                    (add-or-edit-form "/admin/add")))
-
-(defn add-page
-  "Adds a page to the database with the specified title and content"
-  [url title body ts]
-  (if (ds/exists? Page url)
-    (result "ERROR: Page already exists!")
-    (do (ds/save! (Page. url title (Text. body) ts))
-        (result "Page saved!"))))
-
-(defn edit-link
-  "Builds a link to edit the specified page"
-  [page]
-  (link-to (str "/admin/edit/" (:url page)) "edit"))
-
-(defn delete-link
-  "Builds a link to delete the specified page"
-  [page]
-  (form-to [:post (str "/admin/delete/" (:url page))]
-           (submit-button "Delete")))
-
-(defn admin-page-list
-  "The admin page listing all pages along with edit and delete links"
-  []
-  (def page-list (ds/query :kind Page))
-  (if (empty? page-list)
-    (response-wrapper "No Pages Yet!" "No pages.")
-    (response-wrapper "Page List"
-                      [:ul (for [page page-list]
-                             [:li (page-link page) [:br]
-                              (edit-link page) (delete-link page)])])))
-
-(defn delete-page
-  "Deletes the specified page by url"
-  [url]
-  (try
-    (do (ds/delete! (ds/retrieve Page url))
-        (response-wrapper "Deleted"
-                          (str "Page deleted: " url)))
-    
-    (catch EntityNotFoundException _
-      (response-wrapper "404" (str "Unable to find page: " url) 404))))
-
-(defn admin-edit-page
-  "Displays the Ackbar Admin 'Edit Page' Page"
-  [url]
-  (try
-    (def page (ds/retrieve Page url))
-    (response-wrapper "Edit Page"
-                      (add-or-edit-form "/admin/edit"
-                                        (:title page)
-                                        (:body page)))
-    (catch EntityNotFoundException _
-      (response-wrapper "404" (str "Unable to find page: " url) 404))))
-
-(defn edit-page
-  "Edits a page, updating its title and content"
-  [url title body ts]
-  (if (ds/exists? Page url)
-    (ds/delete! (ds/retrieve Page url)))
-  (ds/save! (Page. url title (Text. body) ts))
-  (result "Page updated!"))
-
-(defn all-pages
-  "Renders a page with all of the pages inserted in the datastore sorted
-   chronologically"
-  []
-  (def pages (ds/query :kind Page))
-  (response-wrapper
-   "All Pages"
-   (for [page pages]
-     (format-page page))))
-
-(defn render-paginate
-  "Renders a fixed number of pages"
+(defn paginated-posts
+  "Takes a page number and returns a Compojure response which displays the
+   posts that should appear on that page number."
   [number]
-  (def pagesize 10)
-  (def pages (ds/query :kind Page :limit pagesize
-                       :offset (* pagesize number)
+  (def pagesize 5)
+  (def posts (ds/query :kind Post :limit pagesize
+                       :offset (* pagesize (dec number))
+                       :filter (= :in-feed? true)
                        :sort [[:timestamp :dsc]]))
-  (response-wrapper
-   "Paginated"
-   (html (for [page pages]
-           (format-page page))
-         (if (> number 0)
-           (html (link-to (str "/pages/" (dec number)) "prev")
-                 [:br]))
-         (if (= pagesize (count pages))
-           (link-to (str "/pages/" (inc number)) "next")))))
+  (def prev (if (> number 1) (str "/posts/" (dec number)) nil))
+  (def nxt (if (= (count posts) 5) (str "/posts/" (inc number)) nil))
+  (respond (vws/posts-view "thurn.ca" posts prev nxt)))
+
+(defn add-post
+  "Adds a post to the database with the specified title and content"
+  [url title body ts in-feed?]
+  (if (ds/exists? Post url)
+    (error404 "ERROR: Post already exists!")
+    (do (ds/save! (Post. url title (Text. body) ts in-feed?))
+        (rsp/redirect "/admin?msg=> post added"))))
+
+(defn new-post
+  "Takes a map holding HTTP post parameters and adds a new Post to the
+   datastore with properties corresponding to those parameters."
+  [params]
+  (println (params "time"))
+  (add-post (canonical-title (params "title"))
+            (params "title")
+            (params "body")
+            (if (empty? (params "time"))
+              (System/currentTimeMillis)
+              (Long/parseLong (params "time")))
+            (if (params "infeed") true false)))
+
+(defn admin-page
+  [msg]
+  (def post-list (ds/query :kind Post))
+  (if msg
+    (respond (vws/posts-admin-view post-list msg))
+    (respond (vws/posts-admin-view post-list))))
+
+(defn paginate-handler
+  [number]
+  (try
+    (def value (Integer/parseInt number))
+    (if (< value 1)
+      (error404 (str "Invalid page number " number))
+      (paginated-posts value))
+    (catch NumberFormatException _
+      (error404 (str "Invalid page number " number)))))
+
+(defn edit-view-handler
+  [url]
+  (try (respond (vws/edit-view "Edit Post" (ds/retrieve Post url)))
+       (catch EntityNotFoundException _
+         (error404 (str "Invalid post URL: " url)))))
+
+(defn edit-post
+  "Edits a post, updating its title and content"
+  [url title body ts in-feed?]
+  (if (ds/exists? Post url)
+    (ds/delete! (ds/retrieve Post url)))
+  (ds/save! (Post. url title (Text. body) ts in-feed?)))
+
+(defn edit-post-handler
+  [params]
+  (edit-post (canonical-title (params "title"))
+             (params "title")
+             (params "body")
+             (if (empty? (params "time"))
+               (System/currentTimeMillis)
+               (Long/parseLong (params "time")))
+             (if (params "infeed") true false))
+  (rsp/redirect "/admin?msg=> post edited"))
+
+(defn delete-post
+  "Deletes the specified post by url"
+  [url]
+  (try
+    (do (ds/delete! (ds/retrieve Post url))
+        (rsp/redirect "/admin?msg=> post deleted"))
+    (catch EntityNotFoundException _
+      (error404 (str "Invalid post URL: " url)))))
 
 (defroutes ackbar-app-handler
-  (GET "/" [] (render-paginate 0))
-  (GET "/pages/:number" [number] (render-paginate
-                                  (Integer/parseInt number)))
-  (GET "/admin/add" [] (admin-add-page))
-  (GET "/admin/pages" [] (admin-page-list))
-  (POST "/admin/add" {params :params}
-        (add-page (canonical-title (params "title"))
-                  (params "title")
-                  (params "body")
-                  (if (empty? (params "timestamp"))
-                    (System/currentTimeMillis)
-                    (Long/parseLong (params "timestamp")))))
-  (GET "/admin/edit/:title" [title] (admin-edit-page title))
-  (POST "/admin/edit" {params :params}
-        (edit-page (canonical-title (params "title"))
-                   (params "title")
-                   (params "body")
-                    (if (empty? (params "timestamp"))
-                    (System/currentTimeMillis)
-                    (Long/parseLong (params "timestamp")))))
-  (POST "/admin/delete/:title" [title] (delete-page title))
-  (GET "/pages" [] (all-pages))
-  (GET "/:title" [title] (render-page
-                          (canonical-title title)))
-  (ANY "*" [] (response-wrapper "404" "NOT FOUND!" 404)))
+  (GET "/" [] (paginated-posts 1))
+  (GET "/posts/:number" [number] (paginate-handler number))
+  (GET "/admin" {params :params} (admin-page (params "msg")))
+  (GET "/admin/add" [] (respond (vws/edit-view "Add Post")))
+  (POST "/admin/add" {params :params} (new-post params))
+  (GET "/admin/edit/:url" [url] (edit-view-handler url))
+  (POST "/admin/edit" {params :params} (edit-post-handler params))
+  (POST "/admin/delete/:url" [url] (delete-post url))
+  (GET "/:url" [url] (single-post (canonical-title url)))
+  (ANY "*" [] (error404 "Not Found.")))
 
 (ae/def-appengine-app ackbar-app #'ackbar-app-handler)
+
