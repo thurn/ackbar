@@ -1,0 +1,27 @@
+<html>
+<body>
+<div id="main">
+  <h1 id="instructions">New Post</h1>
+  <form action="/admin/add" method="POST">
+  <label for="title">Title:</label>
+  <br />
+  <input id="title" name="title" type="text" value="" size="60"/>
+  <br />
+  <label for="time">Time:</label>
+  <br />
+  <input id="time" name="time" type="text" value="" size="60"/>
+  <br />
+  <input id="infeed" type="checkbox" name="infeed" value="infeed"
+  checked="checked" />
+  In Feed?
+  <br>
+  <br />
+  <label for="body">Body:</label>
+  <br />
+  <textarea cols="60" id="body" name="body" rows="40"></textarea>
+  <br />
+  <input type="submit" value="Submit" />
+  </form>
+</div>
+</body>
+</html>

@@ -10,9 +10,9 @@
 
 (def test-posts
      [(ackbar.core.Post. "post_one" "Post One"
-                         (Text. "<p>Some text</p>") 1293087600000 true)
-      (ackbar.core.Post. "post_two" "More text"
-                         (Text. "<p>Post Two</p>") 1292828400000 false)])
+                         (Text. "<p>Some text</p>") 1293087600000 true nil)
+      (ackbar.core.Post. "post_two" "Post Two"
+                         (Text. "<p>More text</p>") 1292828400000 false nil)])
 
 (defn tst-selector [sel resource]
   "Takes a selector and applies it to the template in 'resource'."
@@ -51,7 +51,7 @@
      (apply str (vws/edit-view "title")))
 
 (def tst-posts-admin-view
-     (apply str (vws/posts-admin-view test-posts)))
+     (apply str (vws/posts-admin-view test-posts [])))
 
 ;;;;;;; THE LINE ;;;;;;;;
 
@@ -76,11 +76,11 @@
          (vws/post-admin-snippet post)
          [:.admin-entry] [:.title] [:.edit-form] [:form] [:.delete-form]))))
 
-(deftest notification-snippet
-  (doseq [text ["next" "prev" "" nil]]
-    (is (selector-match?
-         (vws/notification-snippet text)
-         [:.notification] [:div]))))
+;; (deftest notification-snippet
+;;   (doseq [text ["next" "prev" "" nil]]
+;;     (is (selector-match?
+;;          (vws/notification-snippet text)
+;;          [:.notification] [:div]))))
 
 (deftest page-nav-snippet
   (let [code (vws/page-nav-snippet nil nil)]

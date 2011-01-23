@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Derek Thurn's Website</title>
+    <description>The feed for Derek Thurn's website</description>
+    <generator>Hand coded, yo!</generator>
+    <language>en</language>
+    <item>
+      <title></title>
+      <link></link>
+      <pubDate></pubDate>
+      <description></description>
+    </item>
+  </channel>
+</rss>
