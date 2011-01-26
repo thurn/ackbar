@@ -33,7 +33,7 @@ div#main {
 	padding-right:25px;
   padding-left:50px;
 	float:left;
-	width: 570px;
+	width: 580px;
 	line-height: 1.8;
   text-align: justify;
 }
@@ -68,8 +68,8 @@ div#nav li {
 	margin-top: 5px;
 }
 h1.title {
-	line-height: 1;
-	font-size: 1.2em;
+	line-height: normal;
+	font-size: 1.4em;
 	color: #666;
 }
 h2 {
@@ -95,13 +95,13 @@ pre.code {
 	background-color: #000;
 	padding-left: 10px;
 	font-family: "Courier New", Courier, monospace;
-	font-size: 0.8em;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
   behavior: url(/PIE.htc);
   padding-top: 5px;
   padding-bottom: 5px;
+  line-height: normal;
 }
 form.edit-form {
     display: inline;
@@ -114,6 +114,20 @@ div.notification {
     font-size: xx-large;
     font-weight: bolder;
     text-decoration: underline;
+}
+div.discuss {
+  text-align: right;
+}
+span.discuss-link {
+  cursor: pointer;
+	color: #999;
+  text-decoration: underline;
+}
+span.discuss-link:hover {
+	background-color: #EEE;
+}
+div.discuss-content {
+  display: none;
 }
 /* syntax highlight */
 
