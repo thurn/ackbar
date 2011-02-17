@@ -25,19 +25,9 @@
                    (html/content (:title post))
                    (html/set-attr :href (str "/" (:url post))))
   [:.date] (html/content (to-date (:timestamp post))) 
-  [:.body] (html/html-content (.getValue (:body post))))
-
-(defn cdata
-  "Wraps a string in CDATA markers"
-  [string]
-  (str "STARTCDATA" string "ENDCDATA"))
-
-(defn replace-cdata
-  "Takes a seq of strings and replaces occurences of the CDATA markers with
-  actual CDATA tags."
-  [strings]
-  (def interm (map #(su/replace % "STARTCDATA" "<![CDATA[") strings))
-  (map #(su/replace % "ENDCDATA" "]]>") interm))
+  [:.body] (html/html-content (.getValue (:body post)))
+  [:.twitter-share-button] (html/set-attr :data-url (str base-url (:url post)))
+  [:fb:comments] (html/set-attr :xid (:url post)))
 
 (html/defsnippet
   ^{:doc "A snippet which takes a post definition (ackbar.core.Post object)

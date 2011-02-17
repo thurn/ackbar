@@ -6,12 +6,16 @@ task :prepare do
   system "lein appengine-prepare"
 end
 
-task :devserver => [:prepare] do
+task :ds => [:prepare] do
   exec "./appengine-java-sdk-1.3.8/bin/dev_appserver.sh resources/"
 end
 
 task :deploy => [:prepare] do
   exec "./appengine-java-sdk-1.3.8/bin/appcfg.sh update resources/"
+end
+
+task :rollback => [:prepare] do
+  exec "./appengine-java-sdk-1.3.8/bin/appcfg.sh rollback resources/"
 end
 
 task :swank do

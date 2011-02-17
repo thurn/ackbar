@@ -1,5 +1,5 @@
 (ns ackbar.core
-  (:use [compojure.core :only (GET POST ANY defroutes)])
+  (:use [compojure.core :only (GET POST ANY HEAD defroutes)])
   (:require [appengine-magic.core :as ae]
             [appengine-magic.services.datastore :as ds]
             [appengine-magic.services.blobstore :as blobs]
@@ -23,7 +23,9 @@
   ([code] (respond code 200))
   ([code status]
      {:status status
-      :headers {"Content-Type" "text/html"}
+      :headers {"Content-Type" "text/html",
+                "X-XSS-Protection", "1; mode=block",
+                "Expires", "-1"}
       :body code}))
 
 (defn error404
@@ -218,8 +220,9 @@
         (delete-file (str (params "name") "." (params "ext"))))
   
   (GET "/:url" [url] (single-post (canonical-title url)))
-  (ANY "*" [] (error404 "Not Found."))
-  )
+  (GET "/:url/" [url] (single-post (canonical-title url)))
+  (HEAD "*" _ (respond nil))
+  (ANY "*" [] (error404 "Not Found.")))
 
 (ae/def-appengine-app ackbar-app #'ackbar-app-handler)
 

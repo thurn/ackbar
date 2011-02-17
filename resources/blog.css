@@ -98,7 +98,6 @@ pre.code {
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
-  behavior: url(/PIE.htc);
   padding-top: 5px;
   padding-bottom: 5px;
   line-height: normal;
@@ -115,9 +114,6 @@ div.notification {
     font-weight: bolder;
     text-decoration: underline;
 }
-div.discuss {
-  text-align: right;
-}
 span.discuss-link {
   cursor: pointer;
 	color: #999;
@@ -128,6 +124,9 @@ span.discuss-link:hover {
 }
 div.discuss-content {
   display: none;
+}
+div.discuss-content a {
+  background-color: #FFF;
 }
 /* syntax highlight */
 
@@ -204,4 +203,34 @@ div.discuss-content {
 }
 .rainbow-paren-yellow {
         color: #ffff00;
+}
+/* Clippy */
+
+div.clippyContainer {
+	position: absolute;
+	z-index: 10000;
+}
+
+div.clippyIcon {
+	float: left;
+}
+
+div.clippyText {
+	float: left;
+	background-color: #FFFFCE;
+	padding: 10px;
+	border: 1px solid #000000;
+	width: 100px;
+	overflow: hidden;
+	font-size: 14px;
+	
+	border-bottom-left-radius: 5px 5px;
+	border-bottom-right-radius: 5px 5px;
+	border-top-left-radius: 5px 5px;
+	border-top-right-radius: 5px 5px;
+	-moz-border-radius: 5px 5px 5px 5px;
+}
+
+div.clippyClear {
+	clear: both;
 }
